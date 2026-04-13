@@ -84,13 +84,13 @@ function ActivityIcon({ type }) {
 function formatDate(dateStr) {
   if (!dateStr) return '\u2014';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function formatDateTime(dateStr) {
   if (!dateStr) return '\u2014';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', {
+  return d.toLocaleDateString('en-PK', {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: 'numeric', minute: '2-digit', hour12: true,
   });
@@ -98,7 +98,7 @@ function formatDateTime(dateStr) {
 
 function formatCurrency(value) {
   if (value == null || value === '') return '\u2014';
-  return `\u20B9${Number(value).toLocaleString('en-IN')}`;
+  return `Rs ${Number(value).toLocaleString('en-PK')}`;
 }
 
 function relativeTime(dateStr) {
@@ -119,7 +119,7 @@ function relativeTime(dateStr) {
 function formatDateOnly(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function DetailField({ label, children }) {

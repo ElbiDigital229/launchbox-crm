@@ -38,9 +38,9 @@ const STAGE_BORDER_COLORS = {
 };
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat('en-PK', {
     style: 'currency',
-    currency: 'INR',
+    currency: 'PKR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -58,7 +58,7 @@ function isOverdue(dateStr) {
 function formatFollowUpDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return d.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 }
 
 // ─── Draggable Card ─────────────────────────────────────────────────────────

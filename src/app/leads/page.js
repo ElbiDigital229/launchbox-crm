@@ -132,7 +132,7 @@ export default function LeadsPage() {
                     {lead.source && <Badge variant="gray" size="sm">{lead.source}</Badge>}
                     {lead.plan_type && <Badge variant="indigo" size="sm">{lead.plan_type}</Badge>}
                     {lead.rate_quoted ? (
-                      <Badge variant="green" size="sm">&#x20B9;{Number(lead.rate_quoted).toLocaleString('en-IN')}</Badge>
+                      <Badge variant="green" size="sm">Rs {Number(lead.rate_quoted).toLocaleString('en-PK')}</Badge>
                     ) : null}
                     {lead.visited ? <Badge variant="green" size="sm">Visited</Badge> : null}
                   </div>
@@ -188,7 +188,7 @@ export default function LeadsPage() {
                         {(!lead.tags || lead.tags.length === 0) && <span className="text-gray-300">-</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-600 text-right">
-                        {lead.rate_quoted ? `\u20B9${Number(lead.rate_quoted).toLocaleString('en-IN')}` : '-'}
+                        {lead.rate_quoted ? `Rs ${Number(lead.rate_quoted).toLocaleString('en-PK')}` : '-'}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {lead.visited ? (

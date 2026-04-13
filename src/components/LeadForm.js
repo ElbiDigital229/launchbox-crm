@@ -93,7 +93,7 @@ export default function LeadForm({ lead, onSubmit }) {
               <option value="">Select a plan</option>
               {PLANS.map((p) => <option key={p} value={p}>{p}</option>)}
             </Select>
-            <Input label="Rate Quoted (&#x20B9;)" type="number" name="rate_quoted" placeholder="e.g., 25000" value={formData.rate_quoted} onChange={handleChange} min="0" step="100" />
+            <Input label="Rate Quoted (Rs)" type="number" name="rate_quoted" placeholder="e.g., 25000" value={formData.rate_quoted} onChange={handleChange} min="0" step="100" />
           </div>
         </FormSection>
 
