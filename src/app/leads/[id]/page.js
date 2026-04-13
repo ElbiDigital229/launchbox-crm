@@ -186,9 +186,9 @@ export default function ViewLeadPage() {
           </svg>
           Back to Leads
         </Link>
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{lead.name}</h1>
             {lead.company && <p className="text-gray-500 mt-1">{lead.company}</p>}
           </div>
           <div className="flex items-center gap-3">
@@ -206,9 +206,9 @@ export default function ViewLeadPage() {
       </div>
 
       {/* Details Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Lead Details</h2>
-        <dl className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-5">
           <DetailField label="Email">
             {lead.email ? (
               <a href={`mailto:${lead.email}`} className="text-indigo-600 hover:underline">{lead.email}</a>
@@ -237,7 +237,7 @@ export default function ViewLeadPage() {
       </div>
 
       {/* Activity Timeline */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Activity Log</h2>
           <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs font-medium">

@@ -102,81 +102,120 @@ export default function LeadsPage() {
         </select>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <p className="text-lg">No leads yet.</p>
-            <p className="text-sm mt-1">Add your first lead!</p>
+      {/* Content */}
+      {filtered.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center py-16 text-gray-400">
+          <p className="text-lg">No leads yet.</p>
+          <p className="text-sm mt-1">Add your first lead!</p>
+        </div>
+      ) : (
+        <>
+          {/* Mobile card view */}
+          <div className="lg:hidden space-y-3">
+            {filtered.map((lead) => (
+              <Link
+                key={lead.id}
+                href={`/leads/${lead.id}`}
+                className="block bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-semibold text-gray-900">{lead.name}</p>
+                    {lead.company && <p className="text-sm text-gray-500">{lead.company}</p>}
+                  </div>
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800'}`}
+                  >
+                    {lead.stage}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
+                  {lead.source && <span className="bg-gray-100 px-2 py-0.5 rounded">{lead.source}</span>}
+                  {lead.plan_type && <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">{lead.plan_type}</span>}
+                  {lead.rate_quoted ? (
+                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">₹{Number(lead.rate_quoted).toLocaleString('en-IN')}</span>
+                  ) : null}
+                  {lead.visited ? (
+                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">Visited</span>
+                  ) : null}
+                </div>
+                {lead.follow_up_date && (
+                  <p className="text-xs text-gray-400 mt-2">Follow-up: {lead.follow_up_date}</p>
+                )}
+              </Link>
+            ))}
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Source</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Stage</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Plan</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Rate</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-500">Visited</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Follow-up</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((lead) => (
-                  <tr key={lead.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-gray-900 font-medium">
-                      <Link href={`/leads/${lead.id}`} className="hover:text-indigo-600 hover:underline">
-                        {lead.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{lead.company || '-'}</td>
-                    <td className="px-4 py-3 text-gray-600">{lead.source}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800'}`}
-                      >
-                        {lead.stage}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{lead.plan_type || '-'}</td>
-                    <td className="px-4 py-3 text-gray-600 text-right">
-                      {lead.rate_quoted ? `₹${Number(lead.rate_quoted).toLocaleString('en-IN')}` : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {lead.visited ? (
-                        <span className="text-green-500 font-bold">&#10003;</span>
-                      ) : (
-                        <span className="text-gray-300 font-bold">&#10005;</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{lead.follow_up_date || '-'}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/leads/${lead.id}/edit`}
-                          className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(lead.id)}
-                          className="text-red-500 hover:text-red-700 text-xs font-medium"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+
+          {/* Desktop table view */}
+          <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Source</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Stage</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Plan</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-500">Rate</th>
+                    <th className="text-center px-4 py-3 font-medium text-gray-500">Visited</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Follow-up</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((lead) => (
+                    <tr key={lead.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-900 font-medium">
+                        <Link href={`/leads/${lead.id}`} className="hover:text-indigo-600 hover:underline">
+                          {lead.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{lead.company || '-'}</td>
+                      <td className="px-4 py-3 text-gray-600">{lead.source}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800'}`}
+                        >
+                          {lead.stage}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{lead.plan_type || '-'}</td>
+                      <td className="px-4 py-3 text-gray-600 text-right">
+                        {lead.rate_quoted ? `₹${Number(lead.rate_quoted).toLocaleString('en-IN')}` : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {lead.visited ? (
+                          <span className="text-green-500 font-bold">&#10003;</span>
+                        ) : (
+                          <span className="text-gray-300 font-bold">&#10005;</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{lead.follow_up_date || '-'}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/leads/${lead.id}/edit`}
+                            className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(lead.id)}
+                            className="text-red-500 hover:text-red-700 text-xs font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }

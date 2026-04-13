@@ -131,7 +131,7 @@ function DroppableColumn({ stage, leads, onCardClick }) {
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-[280px] max-w-[280px] flex flex-col bg-gray-50 rounded-lg border-t-4 ${
+      className={`min-w-[240px] sm:min-w-[280px] max-w-[240px] sm:max-w-[280px] flex flex-col bg-gray-50 rounded-lg border-t-4 ${
         STAGE_BORDER_COLORS[stage]
       } ${isOver ? 'ring-2 ring-indigo-300 bg-indigo-50/40' : ''}`}
     >
@@ -257,10 +257,10 @@ export default function KanbanPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="sm:p-2">
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Pipeline</h1>
         <p className="text-sm text-gray-500 mt-1">
           Drag leads between stages
         </p>
