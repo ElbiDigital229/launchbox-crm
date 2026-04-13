@@ -1,176 +1,139 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import prisma from './prisma';
 
-const dbPath = path.join(process.cwd(), 'data', 'crm.db');
-
-// Ensure data directory exists
-import fs from 'fs';
-const dataDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Create tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS leads (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT,
-    phone TEXT,
-    company TEXT,
-    source TEXT DEFAULT 'Walk-in',
-    stage TEXT DEFAULT 'New',
-    plan_type TEXT,
-    rate_quoted REAL,
-    visited INTEGER DEFAULT 0,
-    visit_date TEXT,
-    next_steps TEXT,
-    follow_up_date TEXT,
-    notes TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS lead_activities (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    lead_id INTEGER NOT NULL,
-    type TEXT NOT NULL DEFAULT 'note',
-    description TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
-  );
-`);
-
-export function getAllLeads() {
-  return db.prepare('SELECT * FROM leads ORDER BY created_at DESC').all();
-}
-
-export function getLeadById(id) {
-  return db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
-}
-
-export function createLead(data) {
-  const stmt = db.prepare(`
-    INSERT INTO leads (name, email, phone, company, source, stage, plan_type, rate_quoted, visited, visit_date, next_steps, follow_up_date, notes)
-    VALUES (@name, @email, @phone, @company, @source, @stage, @plan_type, @rate_quoted, @visited, @visit_date, @next_steps, @follow_up_date, @notes)
-  `);
-  const result = stmt.run({
-    name: data.name,
-    email: data.email || null,
-    phone: data.phone || null,
-    company: data.company || null,
-    source: data.source || 'Walk-in',
-    stage: data.stage || 'New',
-    plan_type: data.plan_type || null,
-    rate_quoted: data.rate_quoted || null,
-    visited: data.visited ? 1 : 0,
-    visit_date: data.visit_date || null,
-    next_steps: data.next_steps || null,
-    follow_up_date: data.follow_up_date || null,
-    notes: data.notes || null,
+export async function getAllLeads() {
+  return prisma.lead.findMany({
+    orderBy: { created_at: 'desc' },
   });
-  return getLeadById(result.lastInsertRowid);
 }
 
-export function updateLead(id, data) {
-  const existing = getLeadById(id);
+export async function getLeadById(id) {
+  return prisma.lead.findUnique({
+    where: { id: Number(id) },
+  });
+}
+
+export async function createLead(data) {
+  return prisma.lead.create({
+    data: {
+      name: data.name,
+      email: data.email || null,
+      phone: data.phone || null,
+      company: data.company || null,
+      source: data.source || 'Walk-in',
+      stage: data.stage || 'New',
+      plan_type: data.plan_type || null,
+      rate_quoted: data.rate_quoted ? parseFloat(data.rate_quoted) : null,
+      visited: Boolean(data.visited),
+      visit_date: data.visit_date || null,
+      next_steps: data.next_steps || null,
+      follow_up_date: data.follow_up_date || null,
+      notes: data.notes || null,
+    },
+  });
+}
+
+export async function updateLead(id, data) {
+  const existing = await prisma.lead.findUnique({
+    where: { id: Number(id) },
+  });
   if (!existing) return null;
 
-  const stmt = db.prepare(`
-    UPDATE leads SET
-      name = @name,
-      email = @email,
-      phone = @phone,
-      company = @company,
-      source = @source,
-      stage = @stage,
-      plan_type = @plan_type,
-      rate_quoted = @rate_quoted,
-      visited = @visited,
-      visit_date = @visit_date,
-      next_steps = @next_steps,
-      follow_up_date = @follow_up_date,
-      notes = @notes,
-      updated_at = datetime('now')
-    WHERE id = @id
-  `);
-  stmt.run({
-    id,
-    name: data.name ?? existing.name,
-    email: data.email ?? existing.email,
-    phone: data.phone ?? existing.phone,
-    company: data.company ?? existing.company,
-    source: data.source ?? existing.source,
-    stage: data.stage ?? existing.stage,
-    plan_type: data.plan_type ?? existing.plan_type,
-    rate_quoted: data.rate_quoted ?? existing.rate_quoted,
-    visited: data.visited !== undefined ? (data.visited ? 1 : 0) : existing.visited,
-    visit_date: data.visit_date ?? existing.visit_date,
-    next_steps: data.next_steps ?? existing.next_steps,
-    follow_up_date: data.follow_up_date ?? existing.follow_up_date,
-    notes: data.notes ?? existing.notes,
+  return prisma.lead.update({
+    where: { id: Number(id) },
+    data: {
+      name: data.name ?? existing.name,
+      email: data.email ?? existing.email,
+      phone: data.phone ?? existing.phone,
+      company: data.company ?? existing.company,
+      source: data.source ?? existing.source,
+      stage: data.stage ?? existing.stage,
+      plan_type: data.plan_type ?? existing.plan_type,
+      rate_quoted: data.rate_quoted !== undefined
+        ? (data.rate_quoted ? parseFloat(data.rate_quoted) : null)
+        : existing.rate_quoted,
+      visited: data.visited !== undefined ? Boolean(data.visited) : existing.visited,
+      visit_date: data.visit_date ?? existing.visit_date,
+      next_steps: data.next_steps ?? existing.next_steps,
+      follow_up_date: data.follow_up_date ?? existing.follow_up_date,
+      notes: data.notes ?? existing.notes,
+    },
   });
-  return getLeadById(id);
 }
 
-export function deleteLead(id) {
-  return db.prepare('DELETE FROM leads WHERE id = ?').run(id);
+export async function deleteLead(id) {
+  return prisma.lead.delete({
+    where: { id: Number(id) },
+  });
 }
 
-export function getLeadsByStage() {
-  return db.prepare('SELECT stage, COUNT(*) as count FROM leads GROUP BY stage').all();
-}
+export async function getDashboardStats() {
+  const today = new Date().toISOString().split('T')[0];
 
-export function getLeadsBySource() {
-  return db.prepare('SELECT source, COUNT(*) as count FROM leads GROUP BY source').all();
-}
-
-export function getDashboardStats() {
-  const total = db.prepare('SELECT COUNT(*) as count FROM leads').get();
-  const won = db.prepare("SELECT COUNT(*) as count FROM leads WHERE stage = 'Won'").get();
-  const lost = db.prepare("SELECT COUNT(*) as count FROM leads WHERE stage = 'Lost'").get();
-  const pipeline = db.prepare("SELECT SUM(rate_quoted) as total FROM leads WHERE stage NOT IN ('Won', 'Lost')").get();
-  const upcomingVisits = db.prepare("SELECT * FROM leads WHERE visit_date >= date('now') AND visited = 0 ORDER BY visit_date ASC LIMIT 5").all();
-  const upcomingFollowUps = db.prepare("SELECT * FROM leads WHERE follow_up_date >= date('now') ORDER BY follow_up_date ASC LIMIT 5").all();
-  const byStage = db.prepare('SELECT stage, COUNT(*) as count FROM leads GROUP BY stage').all();
-  const bySource = db.prepare('SELECT source, COUNT(*) as count FROM leads GROUP BY source').all();
+  const [totalLeads, wonLeads, lostLeads, pipelineAgg, upcomingVisits, upcomingFollowUps, byStageRaw, bySourceRaw] = await Promise.all([
+    prisma.lead.count(),
+    prisma.lead.count({ where: { stage: 'Won' } }),
+    prisma.lead.count({ where: { stage: 'Lost' } }),
+    prisma.lead.aggregate({
+      _sum: { rate_quoted: true },
+      where: { stage: { notIn: ['Won', 'Lost'] } },
+    }),
+    prisma.lead.findMany({
+      where: {
+        visit_date: { gte: today },
+        visited: false,
+      },
+      orderBy: { visit_date: 'asc' },
+      take: 5,
+    }),
+    prisma.lead.findMany({
+      where: {
+        follow_up_date: { gte: today },
+      },
+      orderBy: { follow_up_date: 'asc' },
+      take: 5,
+    }),
+    prisma.lead.groupBy({
+      by: ['stage'],
+      _count: { stage: true },
+    }),
+    prisma.lead.groupBy({
+      by: ['source'],
+      _count: { source: true },
+    }),
+  ]);
 
   return {
-    totalLeads: total.count,
-    wonLeads: won.count,
-    lostLeads: lost.count,
-    conversionRate: total.count > 0 ? ((won.count / total.count) * 100).toFixed(1) : 0,
-    pipelineValue: pipeline.total || 0,
+    totalLeads,
+    wonLeads,
+    lostLeads,
+    conversionRate: totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : 0,
+    pipelineValue: pipelineAgg._sum.rate_quoted || 0,
     upcomingVisits,
     upcomingFollowUps,
-    byStage,
-    bySource,
+    byStage: byStageRaw.map(s => ({ stage: s.stage, count: s._count.stage })),
+    bySource: bySourceRaw.map(s => ({ source: s.source, count: s._count.source })),
   };
 }
 
-export function getActivitiesByLeadId(leadId) {
-  return db.prepare('SELECT * FROM lead_activities WHERE lead_id = ? ORDER BY created_at DESC').all(leadId);
-}
-
-export function createActivity(data) {
-  const stmt = db.prepare(`
-    INSERT INTO lead_activities (lead_id, type, description)
-    VALUES (@lead_id, @type, @description)
-  `);
-  const result = stmt.run({
-    lead_id: data.lead_id,
-    type: data.type || 'note',
-    description: data.description,
+export async function getActivitiesByLeadId(leadId) {
+  return prisma.leadActivity.findMany({
+    where: { lead_id: Number(leadId) },
+    orderBy: { created_at: 'desc' },
   });
-  return db.prepare('SELECT * FROM lead_activities WHERE id = ?').get(result.lastInsertRowid);
 }
 
-export function deleteActivity(id) {
-  return db.prepare('DELETE FROM lead_activities WHERE id = ?').run(id);
+export async function createActivity(data) {
+  return prisma.leadActivity.create({
+    data: {
+      lead_id: parseInt(data.lead_id),
+      type: data.type || 'note',
+      description: data.description,
+    },
+  });
 }
 
-export default db;
+export async function deleteActivity(id) {
+  return prisma.leadActivity.delete({
+    where: { id: Number(id) },
+  });
+}

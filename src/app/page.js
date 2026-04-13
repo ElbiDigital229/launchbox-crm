@@ -21,7 +21,7 @@ function isUrgentDate(dateStr) {
 }
 
 export default async function DashboardPage() {
-  const stats = getDashboardStats();
+  const stats = await getDashboardStats();
 
   const maxStageCount = Math.max(...stats.byStage.map((s) => s.count), 1);
   const maxSourceCount = Math.max(...stats.bySource.map((s) => s.count), 1);
