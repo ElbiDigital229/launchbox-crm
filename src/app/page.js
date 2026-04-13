@@ -1,65 +1,148 @@
-import Image from "next/image";
+import StatsCard from '@/components/StatsCard';
+import { STAGE_BAR_COLORS, SOURCE_COLORS } from '@/lib/constants';
+import { getDashboardStats } from '@/lib/db';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage() {
+  const stats = getDashboardStats();
+
+  const maxStageCount = Math.max(...stats.byStage.map((s) => s.count), 1);
+  const maxSourceCount = Math.max(...stats.bySource.map((s) => s.count), 1);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Overview of your coworking leads</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard title="Total Leads" value={stats.totalLeads} />
+        <StatsCard title="Won Deals" value={stats.wonLeads} />
+        <StatsCard
+          title="Conversion Rate"
+          value={`${stats.conversionRate}%`}
+          subtitle={`${stats.wonLeads} won of ${stats.totalLeads} total`}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <StatsCard
+          title="Pipeline Value"
+          value={`₹${Number(stats.pipelineValue).toLocaleString('en-IN')}`}
+          subtitle="Active deals"
+        />
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Leads by Stage */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Leads by Stage</h2>
+          {stats.byStage.length === 0 ? (
+            <p className="text-sm text-gray-400">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.byStage.map((item) => (
+                <div key={item.stage} className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600 w-24 shrink-0">{item.stage}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${STAGE_BAR_COLORS[item.stage] || 'bg-indigo-500'}`}
+                      style={{ width: `${(item.count / maxStageCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 w-8 text-right">{item.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Leads by Source */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Leads by Source</h2>
+          {stats.bySource.length === 0 ? (
+            <p className="text-sm text-gray-400">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.bySource.map((item) => (
+                <div key={item.source} className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full shrink-0 ${SOURCE_COLORS[item.source] || 'bg-gray-400'}`} />
+                  <span className="text-sm text-gray-600 w-24 shrink-0">{item.source}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${SOURCE_COLORS[item.source] || 'bg-gray-400'}`}
+                      style={{ width: `${(item.count / maxSourceCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 w-8 text-right">{item.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </main>
+      </div>
+
+      {/* Lists Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Upcoming Visits */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Visits</h2>
+          {stats.upcomingVisits.length === 0 ? (
+            <p className="text-sm text-gray-400">No upcoming visits</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">Name</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Company</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Visit Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.upcomingVisits.map((lead) => (
+                    <tr key={lead.id} className="border-b border-gray-50">
+                      <td className="py-2 text-gray-900">{lead.name}</td>
+                      <td className="py-2 text-gray-600">{lead.company || '-'}</td>
+                      <td className="py-2 text-gray-600">{lead.visit_date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Upcoming Follow-ups */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Follow-ups</h2>
+          {stats.upcomingFollowUps.length === 0 ? (
+            <p className="text-sm text-gray-400">No upcoming follow-ups</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">Name</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Next Steps</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Follow-up</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.upcomingFollowUps.map((lead) => (
+                    <tr key={lead.id} className="border-b border-gray-50">
+                      <td className="py-2 text-gray-900">{lead.name}</td>
+                      <td className="py-2 text-gray-600">{lead.next_steps || '-'}</td>
+                      <td className="py-2 text-gray-600">{lead.follow_up_date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
