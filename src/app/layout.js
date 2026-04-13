@@ -1,9 +1,9 @@
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
 import { ToastProvider } from '@/components/Toast';
+import AppShell from '@/components/AppShell';
 
 export const metadata = {
-  title: 'CoWork CRM',
+  title: 'LaunchBox CRM',
   description: 'CRM for coworking spaces',
 };
 
@@ -12,12 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <ToastProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto p-4 pt-18 lg:p-8 lg:pt-8">
-              {children}
-            </main>
-          </div>
+          <AppShell>{children}</AppShell>
         </ToastProvider>
       </body>
     </html>

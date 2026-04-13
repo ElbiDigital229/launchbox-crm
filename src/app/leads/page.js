@@ -6,6 +6,7 @@ import { SOURCES, STAGES, LEAD_TAGS } from '@/lib/constants';
 import Avatar from '@/components/Avatar';
 import { useToast } from '@/components/Toast';
 import { Button, Card, StageBadge, Badge, EmptyState, PageHeader, TagList } from '@/components/ui';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function LeadsPage() {
   const addToast = useToast();
@@ -15,6 +16,7 @@ export default function LeadsPage() {
   const [sourceFilter, setSourceFilter] = useState('');
   const [stageFilter, setStageFilter] = useState('');
   const [tagFilter, setTagFilter] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     fetchLeads();
@@ -32,19 +34,21 @@ export default function LeadsPage() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!confirm('Are you sure you want to delete this lead?')) return;
+  async function handleDelete() {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/leads/${deleteTarget.id}`, { method: 'DELETE' });
       if (res.ok) {
         addToast('Lead deleted', 'info');
-        setLeads((prev) => prev.filter((l) => l.id !== id));
+        setLeads((prev) => prev.filter((l) => l.id !== deleteTarget.id));
       } else {
         addToast('Failed to delete lead', 'error');
       }
     } catch (err) {
       console.error('Failed to delete lead:', err);
       addToast('Failed to delete lead', 'error');
+    } finally {
+      setDeleteTarget(null);
     }
   }
 
@@ -201,7 +205,7 @@ export default function LeadsPage() {
                               <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667L5.333 13.333 2 14l.667-3.333L11.333 2Z" />
                             </svg>
                           </Button>
-                          <Button variant="ghost-danger" size="icon" onClick={() => handleDelete(lead.id)}>
+                          <Button variant="ghost-danger" size="icon" onClick={() => setDeleteTarget(lead)}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" />
                             </svg>
@@ -219,6 +223,14 @@ export default function LeadsPage() {
           </Card>
         </>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Lead"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

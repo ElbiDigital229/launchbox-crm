@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import LeadForm from '@/components/LeadForm';
 import { useToast } from '@/components/Toast';
 import { Button, PageHeader } from '@/components/ui';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function EditLeadPage() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export default function EditLeadPage() {
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     async function fetchLead() {
@@ -49,7 +51,7 @@ export default function EditLeadPage() {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this lead? This cannot be undone.')) return;
+    setShowDeleteConfirm(false);
     setDeleting(true);
     try {
       const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
@@ -88,7 +90,7 @@ export default function EditLeadPage() {
       <PageHeader
         title="Edit Lead"
         action={
-          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+          <Button variant="danger" onClick={() => setShowDeleteConfirm(true)} disabled={deleting}>
             {deleting ? 'Deleting...' : 'Delete Lead'}
           </Button>
         }
@@ -96,6 +98,14 @@ export default function EditLeadPage() {
       <div className="mt-6">
         <LeadForm lead={lead} onSubmit={handleSubmit} />
       </div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Lead"
+        message={`Are you sure you want to delete "${lead?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
