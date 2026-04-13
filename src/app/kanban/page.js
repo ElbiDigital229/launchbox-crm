@@ -12,6 +12,9 @@ import {
   useDraggable,
 } from '@dnd-kit/core';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Avatar from '@/components/Avatar';
+import { SkeletonKanban } from '@/components/Skeleton';
 
 const STAGES = [
   'New',
@@ -40,6 +43,21 @@ function formatCurrency(amount) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function isOverdue(dateStr) {
+  if (!dateStr) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
+  return d <= today;
+}
+
+function formatFollowUpDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
 // ─── Draggable Card ─────────────────────────────────────────────────────────
@@ -89,15 +107,18 @@ function DraggableCard({ lead, onClick }) {
 function LeadCardContent({ lead }) {
   return (
     <>
-      <p className="font-semibold text-sm text-gray-900 flex items-center gap-1.5">
-        {lead.name}
-        {lead.visited === 1 && (
-          <span
-            className="inline-block w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
-            title="Visited"
-          />
-        )}
-      </p>
+      <div className="flex items-center gap-2">
+        <Avatar name={lead.name} size="sm" />
+        <p className="font-semibold text-sm text-gray-900 flex items-center gap-1.5">
+          {lead.name}
+          {lead.visited === 1 && (
+            <span
+              className="inline-block w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
+              title="Visited"
+            />
+          )}
+        </p>
+      </div>
 
       {lead.company && (
         <p className="text-xs text-gray-500 mt-0.5">{lead.company}</p>
@@ -118,6 +139,16 @@ function LeadCardContent({ lead }) {
 
       {lead.source && (
         <p className="text-[11px] text-gray-400 mt-2">{lead.source}</p>
+      )}
+
+      {lead.follow_up_date && (
+        <div className={`flex items-center gap-1 mt-2 text-[11px] ${isOverdue(lead.follow_up_date) ? 'text-red-500' : 'text-gray-400'}`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>{formatFollowUpDate(lead.follow_up_date)}</span>
+        </div>
       )}
     </>
   );
@@ -149,11 +180,16 @@ function DroppableColumn({ stage, leads, onCardClick }) {
           <DraggableCard key={lead.id} lead={lead} onClick={onCardClick} />
         ))}
         {leads.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-8">
-            No leads in this stage
-          </p>
+          <div className="border-2 border-dashed border-gray-200 rounded-lg py-8 text-center">
+            <p className="text-xs text-gray-400">No leads</p>
+          </div>
         )}
       </div>
+
+      {/* Add lead link */}
+      <Link href={`/leads/new?stage=${encodeURIComponent(stage)}`} className="block mt-2 text-center py-2 text-xs text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+        + Add lead
+      </Link>
     </div>
   );
 }
@@ -250,8 +286,8 @@ export default function KanbanPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      <div className="p-4">
+        <SkeletonKanban />
       </div>
     );
   }

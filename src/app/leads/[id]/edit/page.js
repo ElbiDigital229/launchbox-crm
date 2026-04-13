@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import LeadForm from '@/components/LeadForm';
+import { useToast } from '@/components/Toast';
 
 export default function EditLeadPage() {
   const { id } = useParams();
   const router = useRouter();
+  const addToast = useToast();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -38,7 +40,10 @@ export default function EditLeadPage() {
       body: JSON.stringify(data),
     });
     if (res.ok) {
+      addToast('Lead updated successfully', 'success');
       router.push(`/leads/${id}`);
+    } else {
+      addToast('Failed to update lead', 'error');
     }
   }
 
@@ -48,10 +53,14 @@ export default function EditLeadPage() {
     try {
       const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        addToast('Lead deleted', 'info');
         router.push('/leads');
+      } else {
+        addToast('Failed to delete lead', 'error');
       }
     } catch (err) {
       console.error('Failed to delete lead:', err);
+      addToast('Failed to delete lead', 'error');
     } finally {
       setDeleting(false);
     }

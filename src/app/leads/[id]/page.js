@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
 import { STAGE_COLORS } from '@/lib/constants';
+import Avatar from '@/components/Avatar';
+import { SkeletonDetail } from '@/components/Skeleton';
 
 const ACTIVITY_TYPES = {
   call: { label: 'Call', color: 'bg-blue-100 text-blue-600', icon: 'phone' },
@@ -13,6 +16,16 @@ const ACTIVITY_TYPES = {
   note: { label: 'Note', color: 'bg-gray-100 text-gray-600', icon: 'pencil' },
   status_change: { label: 'Status Change', color: 'bg-orange-100 text-orange-600', icon: 'arrows' },
   follow_up: { label: 'Follow-up', color: 'bg-yellow-100 text-yellow-600', icon: 'clock' },
+};
+
+const STAGE_BANNER_COLORS = {
+  New: 'bg-blue-500',
+  Contacted: 'bg-yellow-500',
+  'Tour Scheduled': 'bg-purple-500',
+  Toured: 'bg-indigo-500',
+  Negotiation: 'bg-orange-500',
+  Won: 'bg-green-500',
+  Lost: 'bg-red-500',
 };
 
 function ActivityIcon({ type }) {
@@ -89,10 +102,31 @@ function formatCurrency(value) {
   return `₹${Number(value).toLocaleString('en-IN')}`;
 }
 
+function relativeTime(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diffMs = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatDate(dateStr);
+}
+
+function formatDateOnly(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function DetailField({ label, children }) {
   return (
-    <div>
-      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</dt>
+    <div className="py-3 border-b border-gray-100 last:border-b-0">
+      <dt className="uppercase tracking-wider text-[11px] text-gray-400 font-semibold">{label}</dt>
       <dd className="mt-1 text-sm text-gray-900">{children || '—'}</dd>
     </div>
   );
@@ -100,6 +134,7 @@ function DetailField({ label, children }) {
 
 export default function ViewLeadPage() {
   const { id } = useParams();
+  const addToast = useToast();
   const [lead, setLead] = useState(null);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -147,23 +182,23 @@ export default function ViewLeadPage() {
         body: JSON.stringify({ type: activityType, description: activityDesc }),
       });
       if (res.ok) {
+        addToast('Activity added', 'success');
         setActivityDesc('');
         setActivityType('call');
         fetchActivities();
+      } else {
+        addToast('Failed to add activity', 'error');
       }
     } catch (err) {
       console.error('Failed to add activity:', err);
+      addToast('Failed to add activity', 'error');
     } finally {
       setSubmitting(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-400">Loading lead...</p>
-      </div>
-    );
+    return <SkeletonDetail />;
   }
 
   if (!lead) {
@@ -175,32 +210,39 @@ export default function ViewLeadPage() {
   }
 
   const stageColor = STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800';
+  const bannerColor = STAGE_BANNER_COLORS[lead.stage] || 'bg-gray-400';
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <Link href="/leads" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          Back to Leads
-        </Link>
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{lead.name}</h1>
-            {lead.company && <p className="text-gray-500 mt-1">{lead.company}</p>}
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${stageColor}`}>
-              {lead.stage}
-            </span>
-            <Link
-              href={`/leads/${id}/edit`}
-              className="inline-flex items-center rounded-lg border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
-            >
-              Edit
-            </Link>
+      {/* Back link */}
+      <Link href="/leads" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        Back to Leads
+      </Link>
+
+      {/* Header Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 sm:mb-8 overflow-hidden">
+        <div className={`h-2 rounded-t-xl ${bannerColor}`} />
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <Avatar name={lead.name} size="xl" />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
+              {lead.company && <p className="text-gray-500 mt-0.5">{lead.company}</p>}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${stageColor}`}>
+                {lead.stage}
+              </span>
+              <Link
+                href={`/leads/${id}/edit`}
+                className="inline-flex items-center rounded-lg border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
+              >
+                Edit
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -208,7 +250,7 @@ export default function ViewLeadPage() {
       {/* Details Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Lead Details</h2>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-5">
+        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6">
           <DetailField label="Email">
             {lead.email ? (
               <a href={`mailto:${lead.email}`} className="text-indigo-600 hover:underline">{lead.email}</a>
@@ -261,7 +303,7 @@ export default function ViewLeadPage() {
               value={activityDesc}
               onChange={(e) => setActivityDesc(e.target.value)}
               placeholder="Describe the activity..."
-              rows={2}
+              rows={3}
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
             <button
@@ -282,21 +324,41 @@ export default function ViewLeadPage() {
             {activities.map((activity, index) => {
               const config = ACTIVITY_TYPES[activity.type] || ACTIVITY_TYPES.note;
               const isLast = index === activities.length - 1;
+
+              // Date separator logic
+              const currentDate = activity.created_at ? formatDateOnly(activity.created_at) : '';
+              const prevDate = index > 0 && activities[index - 1].created_at
+                ? formatDateOnly(activities[index - 1].created_at)
+                : null;
+              const showDateSeparator = index === 0 || currentDate !== prevDate;
+
               return (
-                <div key={activity.id || index} className="relative flex gap-4 pb-6">
-                  {/* Vertical line */}
-                  {!isLast && (
-                    <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-200" />
+                <div key={activity.id || index}>
+                  {showDateSeparator && currentDate && (
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="h-px flex-1 bg-gray-200" />
+                      <span className="text-xs font-medium text-gray-400">{currentDate}</span>
+                      <div className="h-px flex-1 bg-gray-200" />
+                    </div>
                   )}
-                  {/* Icon dot */}
-                  <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.color}`}>
-                    <ActivityIcon type={config.icon} />
-                  </div>
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="text-xs font-bold text-gray-700">{config.label}</p>
-                    <p className="text-sm text-gray-900 mt-0.5">{activity.description}</p>
-                    <p className="text-xs text-gray-400 mt-1">{formatDateTime(activity.created_at)}</p>
+                  <div className="relative flex gap-4 pb-6">
+                    {/* Vertical line */}
+                    {!isLast && (
+                      <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-200" />
+                    )}
+                    {/* Icon dot */}
+                    <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.color}`}>
+                      <ActivityIcon type={config.icon} />
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-gray-700">{config.label}</p>
+                        <span className="text-xs text-gray-400">{relativeTime(activity.created_at)}</span>
+                      </div>
+                      <p className="text-sm text-gray-900 mt-0.5">{activity.description}</p>
+                      <p className="text-xs text-gray-400 mt-1">{formatDateTime(activity.created_at)}</p>
+                    </div>
                   </div>
                 </div>
               );

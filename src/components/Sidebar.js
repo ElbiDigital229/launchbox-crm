@@ -46,6 +46,23 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [wonCount, setWonCount] = useState(0);
+
+  // Fetch lead counts
+  useEffect(() => {
+    async function fetchLeadCounts() {
+      try {
+        const res = await fetch('/api/leads');
+        const data = await res.json();
+        setTotalLeads(data.length);
+        setWonCount(data.filter((l) => l.stage === 'Won').length);
+      } catch (err) {
+        console.error('Failed to fetch lead counts:', err);
+      }
+    }
+    fetchLeadCounts();
+  }, []);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -137,7 +154,12 @@ export default function Sidebar() {
                 }`}
               >
                 {item.icon}
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.label === 'All Leads' && totalLeads > 0 && (
+                  <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center">
+                    {totalLeads}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -145,7 +167,9 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-700">
-          <p className="text-xs text-slate-500">CoWork CRM v1.0</p>
+          <p className="text-xs text-slate-400">
+            {totalLeads > 0 ? `${totalLeads} leads \u00B7 ${wonCount} won` : 'CoWork CRM v1.0'}
+          </p>
         </div>
       </aside>
     </>
