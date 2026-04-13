@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { SOURCES, STAGES } from '@/lib/constants';
+import { SOURCES, STAGES, LEAD_TAGS } from '@/lib/constants';
 import Avatar from '@/components/Avatar';
 import { useToast } from '@/components/Toast';
-import { Button, Card, StageBadge, Badge, EmptyState, PageHeader } from '@/components/ui';
+import { Button, Card, StageBadge, Badge, EmptyState, PageHeader, TagList } from '@/components/ui';
 
 export default function LeadsPage() {
   const addToast = useToast();
@@ -14,6 +14,7 @@ export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   const [stageFilter, setStageFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState('');
 
   useEffect(() => {
     fetchLeads();
@@ -56,7 +57,8 @@ export default function LeadsPage() {
       (lead.company && lead.company.toLowerCase().includes(q));
     const matchesSource = !sourceFilter || lead.source === sourceFilter;
     const matchesStage = !stageFilter || lead.stage === stageFilter;
-    return matchesSearch && matchesSource && matchesStage;
+    const matchesTag = !tagFilter || (lead.tags && lead.tags.includes(tagFilter));
+    return matchesSearch && matchesSource && matchesStage && matchesTag;
   });
 
   const inputClass =
@@ -86,25 +88,17 @@ export default function LeadsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className={`flex-1 ${inputClass}`}
         />
-        <select
-          value={sourceFilter}
-          onChange={(e) => setSourceFilter(e.target.value)}
-          className={inputClass}
-        >
+        <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className={inputClass}>
           <option value="">All Sources</option>
-          {SOURCES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select
-          value={stageFilter}
-          onChange={(e) => setStageFilter(e.target.value)}
-          className={inputClass}
-        >
+        <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className={inputClass}>
           <option value="">All Stages</option>
-          {STAGES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)} className={inputClass}>
+          <option value="">All Tags</option>
+          {LEAD_TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 
@@ -118,11 +112,7 @@ export default function LeadsPage() {
           {/* Mobile card view */}
           <div className="lg:hidden space-y-2">
             {filtered.map((lead) => (
-              <Link
-                key={lead.id}
-                href={`/leads/${lead.id}`}
-                className="block"
-              >
+              <Link key={lead.id} href={`/leads/${lead.id}`} className="block">
                 <Card padding="px-4 py-3" className="hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
@@ -142,6 +132,11 @@ export default function LeadsPage() {
                     ) : null}
                     {lead.visited ? <Badge variant="green" size="sm">Visited</Badge> : null}
                   </div>
+                  {lead.tags && lead.tags.length > 0 && (
+                    <div className="mt-2">
+                      <TagList tags={lead.tags} max={3} />
+                    </div>
+                  )}
                   {lead.follow_up_date && (
                     <p className="text-xs text-gray-400 mt-2">Follow-up: {lead.follow_up_date}</p>
                   )}
@@ -160,6 +155,7 @@ export default function LeadsPage() {
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Source</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Stage</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Plan</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Tags</th>
                     <th className="text-right px-4 py-3 font-medium text-gray-500">Rate</th>
                     <th className="text-center px-4 py-3 font-medium text-gray-500">Visited</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Follow-up</th>
@@ -181,10 +177,12 @@ export default function LeadsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-600">{lead.source}</td>
-                      <td className="px-4 py-3">
-                        <StageBadge stage={lead.stage} />
-                      </td>
+                      <td className="px-4 py-3"><StageBadge stage={lead.stage} /></td>
                       <td className="px-4 py-3 text-gray-600">{lead.plan_type || '-'}</td>
+                      <td className="px-4 py-3">
+                        <TagList tags={lead.tags} max={2} />
+                        {(!lead.tags || lead.tags.length === 0) && <span className="text-gray-300">-</span>}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 text-right">
                         {lead.rate_quoted ? `\u20B9${Number(lead.rate_quoted).toLocaleString('en-IN')}` : '-'}
                       </td>

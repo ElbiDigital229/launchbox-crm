@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import { SkeletonKanban } from '@/components/Skeleton';
-import { Badge, PageHeader } from '@/components/ui';
+import { Badge, PageHeader, TagList } from '@/components/ui';
 
 const STAGES = [
   'New',
@@ -137,6 +137,12 @@ function LeadCardContent({ lead }) {
           </span>
         )}
       </div>
+
+      {lead.tags && lead.tags.length > 0 && (
+        <div className="mt-2">
+          <TagList tags={lead.tags} max={2} size="sm" />
+        </div>
+      )}
 
       {lead.source && (
         <p className="text-[11px] text-gray-400 mt-2">{lead.source}</p>

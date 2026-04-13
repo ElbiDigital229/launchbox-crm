@@ -21,6 +21,7 @@ model Lead {
   next_steps     String?
   follow_up_date String?
   notes          String?
+  tags           String[]       @default([])
   created_at     DateTime       @default(now())
   updated_at     DateTime       @default(now()) @updatedAt
   activities     LeadActivity[]

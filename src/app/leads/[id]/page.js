@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast';
 import { STAGE_COLORS } from '@/lib/constants';
 import Avatar from '@/components/Avatar';
 import { SkeletonDetail } from '@/components/Skeleton';
-import { Button, Card, StageBadge, Badge, Select, Textarea } from '@/components/ui';
+import { Button, Card, StageBadge, Badge, Select, Textarea, TagList } from '@/components/ui';
 
 const ACTIVITY_TYPES = {
   call: { label: 'Call', color: 'bg-blue-100 text-blue-600', icon: 'phone' },
@@ -224,9 +224,14 @@ export default function ViewLeadPage() {
               <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
               {lead.company && <p className="text-gray-500 mt-0.5">{lead.company}</p>}
             </div>
-            <div className="flex items-center gap-3">
-              <StageBadge stage={lead.stage} size="lg" />
-              <Button variant="outline" href={`/leads/${id}/edit`}>Edit</Button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-3">
+                <StageBadge stage={lead.stage} size="lg" />
+                <Button variant="outline" href={`/leads/${id}/edit`}>Edit</Button>
+              </div>
+              {lead.tags && lead.tags.length > 0 && (
+                <TagList tags={lead.tags} size="md" />
+              )}
             </div>
           </div>
         </div>
@@ -259,6 +264,11 @@ export default function ViewLeadPage() {
           <DetailField label="Visit Date">{formatDate(lead.visit_date)}</DetailField>
           <DetailField label="Follow-up Date">{formatDate(lead.follow_up_date)}</DetailField>
           <DetailField label="Next Steps">{lead.next_steps}</DetailField>
+          <DetailField label="Tags">
+            {lead.tags && lead.tags.length > 0 ? (
+              <TagList tags={lead.tags} size="md" />
+            ) : null}
+          </DetailField>
           <DetailField label="Created">{formatDate(lead.created_at)}</DetailField>
         </dl>
       </Card>

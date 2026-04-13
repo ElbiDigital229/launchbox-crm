@@ -2,7 +2,33 @@ export const SOURCES = ['Walk-in', 'Website', 'Referral', 'Social Media', 'Cold 
 
 export const STAGES = ['New', 'Contacted', 'Visited', 'Proposal', 'Negotiation', 'Won', 'Lost'];
 
-export const PLANS = ['Hot Desk', 'Dedicated Desk', 'Private Cabin', 'Meeting Room', 'Virtual Office', 'Custom'];
+export const PLANS = ['Dedicated', 'Flexible', 'Private Cabin', 'Event'];
+
+export const LEAD_TAGS = [
+  'Hot Lead',
+  'Corporate',
+  'Startup',
+  'Freelancer',
+  'Student',
+  'Event Booking',
+  'Long Term',
+  'Short Term',
+  'Price Sensitive',
+  'VIP',
+];
+
+export const TAG_COLORS = {
+  'Hot Lead': 'red',
+  Corporate: 'blue',
+  Startup: 'purple',
+  Freelancer: 'orange',
+  Student: 'yellow',
+  'Event Booking': 'pink',
+  'Long Term': 'green',
+  'Short Term': 'indigo',
+  'Price Sensitive': 'orange',
+  VIP: 'red',
+};
 
 export const STAGE_COLORS = {
   New: 'bg-blue-100 text-blue-800',

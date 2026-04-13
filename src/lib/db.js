@@ -28,6 +28,7 @@ export async function createLead(data) {
       next_steps: data.next_steps || null,
       follow_up_date: data.follow_up_date || null,
       notes: data.notes || null,
+      tags: data.tags || [],
     },
   });
 }
@@ -56,6 +57,7 @@ export async function updateLead(id, data) {
       next_steps: data.next_steps ?? existing.next_steps,
       follow_up_date: data.follow_up_date ?? existing.follow_up_date,
       notes: data.notes ?? existing.notes,
+      tags: data.tags ?? existing.tags,
     },
   });
 }
