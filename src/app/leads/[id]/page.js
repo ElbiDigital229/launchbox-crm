@@ -7,6 +7,7 @@ import { useToast } from '@/components/Toast';
 import { STAGE_COLORS } from '@/lib/constants';
 import Avatar from '@/components/Avatar';
 import { SkeletonDetail } from '@/components/Skeleton';
+import { Button, Card, StageBadge, Badge, Select, Textarea } from '@/components/ui';
 
 const ACTIVITY_TYPES = {
   call: { label: 'Call', color: 'bg-blue-100 text-blue-600', icon: 'phone' },
@@ -21,6 +22,8 @@ const ACTIVITY_TYPES = {
 const STAGE_BANNER_COLORS = {
   New: 'bg-blue-500',
   Contacted: 'bg-yellow-500',
+  Visited: 'bg-purple-500',
+  Proposal: 'bg-orange-500',
   'Tour Scheduled': 'bg-purple-500',
   Toured: 'bg-indigo-500',
   Negotiation: 'bg-orange-500',
@@ -79,27 +82,23 @@ function ActivityIcon({ type }) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '\u2014';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function formatDateTime(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '\u2014';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
   });
 }
 
 function formatCurrency(value) {
-  if (value == null || value === '') return '—';
-  return `₹${Number(value).toLocaleString('en-IN')}`;
+  if (value == null || value === '') return '\u2014';
+  return `\u20B9${Number(value).toLocaleString('en-IN')}`;
 }
 
 function relativeTime(dateStr) {
@@ -127,7 +126,7 @@ function DetailField({ label, children }) {
   return (
     <div className="py-3 border-b border-gray-100 last:border-b-0">
       <dt className="uppercase tracking-wider text-[11px] text-gray-400 font-semibold">{label}</dt>
-      <dd className="mt-1 text-sm text-gray-900">{children || '—'}</dd>
+      <dd className="mt-1 text-sm text-gray-900">{children || '\u2014'}</dd>
     </div>
   );
 }
@@ -150,9 +149,7 @@ export default function ViewLeadPage() {
   async function fetchLead() {
     try {
       const res = await fetch(`/api/leads/${id}`);
-      if (res.ok) {
-        setLead(await res.json());
-      }
+      if (res.ok) setLead(await res.json());
     } catch (err) {
       console.error('Failed to fetch lead:', err);
     } finally {
@@ -163,9 +160,7 @@ export default function ViewLeadPage() {
   async function fetchActivities() {
     try {
       const res = await fetch(`/api/leads/${id}/activities`);
-      if (res.ok) {
-        setActivities(await res.json());
-      }
+      if (res.ok) setActivities(await res.json());
     } catch (err) {
       console.error('Failed to fetch activities:', err);
     }
@@ -197,9 +192,7 @@ export default function ViewLeadPage() {
     }
   }
 
-  if (loading) {
-    return <SkeletonDetail />;
-  }
+  if (loading) return <SkeletonDetail />;
 
   if (!lead) {
     return (
@@ -209,7 +202,6 @@ export default function ViewLeadPage() {
     );
   }
 
-  const stageColor = STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800';
   const bannerColor = STAGE_BANNER_COLORS[lead.stage] || 'bg-gray-400';
 
   return (
@@ -223,7 +215,7 @@ export default function ViewLeadPage() {
       </Link>
 
       {/* Header Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 sm:mb-8 overflow-hidden">
+      <Card padding="" className="mb-6 sm:mb-8 overflow-hidden border-gray-200">
         <div className={`h-2 rounded-t-xl ${bannerColor}`} />
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -233,22 +225,15 @@ export default function ViewLeadPage() {
               {lead.company && <p className="text-gray-500 mt-0.5">{lead.company}</p>}
             </div>
             <div className="flex items-center gap-3">
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${stageColor}`}>
-                {lead.stage}
-              </span>
-              <Link
-                href={`/leads/${id}/edit`}
-                className="inline-flex items-center rounded-lg border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
-              >
-                Edit
-              </Link>
+              <StageBadge stage={lead.stage} size="lg" />
+              <Button variant="outline" href={`/leads/${id}/edit`}>Edit</Button>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Details Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+      <Card className="mb-6 sm:mb-8 border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Lead Details</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6">
           <DetailField label="Email">
@@ -266,9 +251,9 @@ export default function ViewLeadPage() {
           <DetailField label="Rate Quoted">{formatCurrency(lead.rate_quoted)}</DetailField>
           <DetailField label="Visited">
             {lead.visited ? (
-              <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-medium">Yes</span>
+              <Badge variant="green" size="md">Yes</Badge>
             ) : (
-              <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-600 px-2 py-0.5 text-xs font-medium">No</span>
+              <Badge variant="gray" size="md">No</Badge>
             )}
           </DetailField>
           <DetailField label="Visit Date">{formatDate(lead.visit_date)}</DetailField>
@@ -276,15 +261,13 @@ export default function ViewLeadPage() {
           <DetailField label="Next Steps">{lead.next_steps}</DetailField>
           <DetailField label="Created">{formatDate(lead.created_at)}</DetailField>
         </dl>
-      </div>
+      </Card>
 
       {/* Activity Timeline */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <Card className="border-gray-200">
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Activity Log</h2>
-          <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-600 px-2.5 py-0.5 text-xs font-medium">
-            {activities.length}
-          </span>
+          <Badge variant="gray">{activities.length}</Badge>
         </div>
 
         {/* Add Activity Form */}
@@ -306,13 +289,13 @@ export default function ViewLeadPage() {
               rows={3}
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
-            <button
+            <Button
               type="submit"
               disabled={submitting || !activityDesc.trim()}
-              className="self-end rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 whitespace-nowrap"
+              className="self-end whitespace-nowrap"
             >
               {submitting ? 'Adding...' : 'Add Update'}
-            </button>
+            </Button>
           </div>
         </form>
 
@@ -325,7 +308,6 @@ export default function ViewLeadPage() {
               const config = ACTIVITY_TYPES[activity.type] || ACTIVITY_TYPES.note;
               const isLast = index === activities.length - 1;
 
-              // Date separator logic
               const currentDate = activity.created_at ? formatDateOnly(activity.created_at) : '';
               const prevDate = index > 0 && activities[index - 1].created_at
                 ? formatDateOnly(activities[index - 1].created_at)
@@ -342,15 +324,12 @@ export default function ViewLeadPage() {
                     </div>
                   )}
                   <div className="relative flex gap-4 pb-6">
-                    {/* Vertical line */}
                     {!isLast && (
                       <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-200" />
                     )}
-                    {/* Icon dot */}
                     <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.color}`}>
                       <ActivityIcon type={config.icon} />
                     </div>
-                    {/* Content */}
                     <div className="flex-1 min-w-0 pt-0.5">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-bold text-gray-700">{config.label}</p>
@@ -365,7 +344,7 @@ export default function ViewLeadPage() {
             })}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

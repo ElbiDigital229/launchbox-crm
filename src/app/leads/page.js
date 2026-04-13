@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { STAGE_COLORS, SOURCES, STAGES } from '@/lib/constants';
+import { SOURCES, STAGES } from '@/lib/constants';
 import Avatar from '@/components/Avatar';
 import { useToast } from '@/components/Toast';
+import { Button, Card, StageBadge, Badge, EmptyState, PageHeader } from '@/components/ui';
 
 export default function LeadsPage() {
   const addToast = useToast();
@@ -58,6 +59,9 @@ export default function LeadsPage() {
     return matchesSearch && matchesSource && matchesStage;
   });
 
+  const inputClass =
+    'block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -68,15 +72,10 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Leads</h1>
-        <Link
-          href="/leads/new"
-          className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          + Add Lead
-        </Link>
-      </div>
+      <PageHeader
+        title="Leads"
+        action={<Button href="/leads/new">+ Add Lead</Button>}
+      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -85,12 +84,12 @@ export default function LeadsPage() {
           placeholder="Search by name, email, or company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className={`flex-1 ${inputClass}`}
         />
         <select
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className={inputClass}
         >
           <option value="">All Sources</option>
           {SOURCES.map((s) => (
@@ -100,7 +99,7 @@ export default function LeadsPage() {
         <select
           value={stageFilter}
           onChange={(e) => setStageFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className={inputClass}
         >
           <option value="">All Stages</option>
           {STAGES.map((s) => (
@@ -111,10 +110,9 @@ export default function LeadsPage() {
 
       {/* Content */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center py-16 text-gray-400">
-          <p className="text-lg">No leads yet.</p>
-          <p className="text-sm mt-1">Add your first lead!</p>
-        </div>
+        <Card>
+          <EmptyState message="No leads yet." submessage="Add your first lead!" />
+        </Card>
       ) : (
         <>
           {/* Mobile card view */}
@@ -123,41 +121,37 @@ export default function LeadsPage() {
               <Link
                 key={lead.id}
                 href={`/leads/${lead.id}`}
-                className="block bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 hover:shadow-md transition-shadow"
+                className="block"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar name={lead.name} size="sm" />
-                    <div>
-                      <p className="font-semibold text-gray-900">{lead.name}</p>
-                      {lead.company && <p className="text-sm text-gray-500">{lead.company}</p>}
+                <Card padding="px-4 py-3" className="hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={lead.name} size="sm" />
+                      <div>
+                        <p className="font-semibold text-gray-900">{lead.name}</p>
+                        {lead.company && <p className="text-sm text-gray-500">{lead.company}</p>}
+                      </div>
                     </div>
+                    <StageBadge stage={lead.stage} />
                   </div>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800'}`}
-                  >
-                    {lead.stage}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
-                  {lead.source && <span className="bg-gray-100 px-2 py-0.5 rounded">{lead.source}</span>}
-                  {lead.plan_type && <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">{lead.plan_type}</span>}
-                  {lead.rate_quoted ? (
-                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">&#x20B9;{Number(lead.rate_quoted).toLocaleString('en-IN')}</span>
-                  ) : null}
-                  {lead.visited ? (
-                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">Visited</span>
-                  ) : null}
-                </div>
-                {lead.follow_up_date && (
-                  <p className="text-xs text-gray-400 mt-2">Follow-up: {lead.follow_up_date}</p>
-                )}
+                  <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                    {lead.source && <Badge variant="gray" size="sm">{lead.source}</Badge>}
+                    {lead.plan_type && <Badge variant="indigo" size="sm">{lead.plan_type}</Badge>}
+                    {lead.rate_quoted ? (
+                      <Badge variant="green" size="sm">&#x20B9;{Number(lead.rate_quoted).toLocaleString('en-IN')}</Badge>
+                    ) : null}
+                    {lead.visited ? <Badge variant="green" size="sm">Visited</Badge> : null}
+                  </div>
+                  {lead.follow_up_date && (
+                    <p className="text-xs text-gray-400 mt-2">Follow-up: {lead.follow_up_date}</p>
+                  )}
+                </Card>
               </Link>
             ))}
           </div>
 
           {/* Desktop table view */}
-          <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <Card padding="" className="hidden lg:block overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -188,11 +182,7 @@ export default function LeadsPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{lead.source}</td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800'}`}
-                        >
-                          {lead.stage}
-                        </span>
+                        <StageBadge stage={lead.stage} />
                       </td>
                       <td className="px-4 py-3 text-gray-600">{lead.plan_type || '-'}</td>
                       <td className="px-4 py-3 text-gray-600 text-right">
@@ -208,22 +198,16 @@ export default function LeadsPage() {
                       <td className="px-4 py-3 text-gray-600">{lead.follow_up_date || '-'}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Link
-                            href={`/leads/${lead.id}/edit`}
-                            className="hover:bg-gray-100 rounded-lg p-1.5 text-gray-500 hover:text-gray-700 transition-colors"
-                          >
+                          <Button variant="ghost" size="icon" href={`/leads/${lead.id}/edit`}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667L5.333 13.333 2 14l.667-3.333L11.333 2Z" />
                             </svg>
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(lead.id)}
-                            className="hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg p-1.5 transition-colors"
-                          >
+                          </Button>
+                          <Button variant="ghost-danger" size="icon" onClick={() => handleDelete(lead.id)}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" />
                             </svg>
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -234,7 +218,7 @@ export default function LeadsPage() {
             <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
               Showing {filtered.length} of {leads.length} leads
             </div>
-          </div>
+          </Card>
         </>
       )}
     </div>

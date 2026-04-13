@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import { SkeletonKanban } from '@/components/Skeleton';
+import { Badge, PageHeader } from '@/components/ui';
 
 const STAGES = [
   'New',
@@ -296,10 +297,7 @@ export default function KanbanPage() {
     <div className="sm:p-2">
       {/* Page header */}
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Pipeline</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Drag leads between stages
-        </p>
+        <PageHeader title="Pipeline" subtitle="Drag leads between stages" />
       </div>
 
       {/* Kanban board */}

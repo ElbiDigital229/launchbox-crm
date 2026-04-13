@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import LeadForm from '@/components/LeadForm';
 import { useToast } from '@/components/Toast';
+import { Button, PageHeader } from '@/components/ui';
 
 export default function EditLeadPage() {
   const { id } = useParams();
@@ -84,17 +85,17 @@ export default function EditLeadPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Edit Lead</h1>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50"
-        >
-          {deleting ? 'Deleting...' : 'Delete Lead'}
-        </button>
+      <PageHeader
+        title="Edit Lead"
+        action={
+          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete Lead'}
+          </Button>
+        }
+      />
+      <div className="mt-6">
+        <LeadForm lead={lead} onSubmit={handleSubmit} />
       </div>
-      <LeadForm lead={lead} onSubmit={handleSubmit} />
     </div>
   );
 }

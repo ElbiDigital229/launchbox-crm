@@ -2,6 +2,7 @@
 import LeadForm from '@/components/LeadForm';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
+import { PageHeader } from '@/components/ui';
 
 export default function NewLeadPage() {
   const router = useRouter();
@@ -27,8 +28,10 @@ export default function NewLeadPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Add New Lead</h1>
-      <LeadForm onSubmit={handleSubmit} />
+      <PageHeader title="Add New Lead" />
+      <div className="mt-6">
+        <LeadForm onSubmit={handleSubmit} />
+      </div>
     </div>
   );
 }
