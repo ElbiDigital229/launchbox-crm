@@ -1,4 +1,4 @@
-export const SOURCES = ['Walk-in', 'Website', 'Referral', 'Social Media', 'Cold Call', 'Email', 'Other'];
+export const SOURCES = ['Walk-in', 'Website', 'Referral', 'Social Media', 'Inbound Call', 'WhatsApp', 'Email', 'Other'];
 
 export const STAGES = ['New', 'Contacted', 'Visited', 'Proposal', 'Negotiation', 'Won', 'Lost'];
 
@@ -55,7 +55,8 @@ export const SOURCE_COLORS = {
   Website: 'bg-blue-500',
   Referral: 'bg-violet-500',
   'Social Media': 'bg-pink-500',
-  'Cold Call': 'bg-amber-500',
+  'Inbound Call': 'bg-amber-500',
+  WhatsApp: 'bg-green-500',
   Email: 'bg-cyan-500',
   Other: 'bg-gray-500',
 };
