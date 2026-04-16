@@ -7,15 +7,68 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   name       String
-  email      String   @unique
+  email      String    @unique
   password   String
-  is_admin   Boolean  @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  is_admin   Boolean   @default(false)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  expenses   Expense[]
 
   @@map("users")
+}
+
+model ExpenseCategory {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  expenses   Expense[]
+
+  @@map("expense_categories")
+}
+
+model Vendor {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  expenses   Expense[]
+
+  @@map("vendors")
+}
+
+model Expense {
+  id                 Int             @id @default(autoincrement())
+  amount             Decimal         @db.Decimal(12, 2)
+  category_id        Int
+  vendor_id          Int
+  created_by_user_id Int?
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @default(now()) @updatedAt
+  category           ExpenseCategory @relation(fields: [category_id], references: [id])
+  vendor             Vendor          @relation(fields: [vendor_id], references: [id])
+  created_by         User?           @relation(fields: [created_by_user_id], references: [id])
+  payments           Payment[]
+
+  @@index([category_id])
+  @@index([vendor_id])
+  @@index([created_at])
+  @@map("expenses")
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  expense_id   Int
+  amount       Decimal  @db.Decimal(12, 2)
+  payment_date DateTime @db.Date
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+  expense      Expense  @relation(fields: [expense_id], references: [id], onDelete: Cascade)
+
+  @@index([expense_id])
+  @@map("payments")
 }
 
 model Lead {
